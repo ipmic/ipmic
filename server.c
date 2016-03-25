@@ -20,7 +20,7 @@ AudioP alp;
  * |sample|channels|   rate|
  * | 16bit|     1ch|22050Hz|
  *
- * We'll have 44100 Bytes per second ( 2Bytes (16bit) * 2Channels * 22050Hz ).
+ * We'll have 44100 Bytes per second ( 2Bytes (16bit) * 1Channel * 22050Hz ).
  *
  * If we split a second of record in 20 parts
  *
