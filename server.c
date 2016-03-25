@@ -6,7 +6,7 @@
 
 long long xrun_count;
 
-NetLayer *nl;
+netlayer_t nl;
 
 AudioL *al;
 
@@ -42,8 +42,8 @@ main(int argc, char **argv)
 
 	if(argc < 7)
 	{
-		printf("usage: cmd <PCMname> <PCMformat> <channels> <rate>"
-		"<period_size> <port>\n");
+		printf("usage: cmd <PCMname> <PCMformat> <channels> <rate> "
+	"<period_size> <port>\n");
 		return 1;
 	}
 
@@ -60,13 +60,13 @@ main(int argc, char **argv)
 	if((al = audiolayer_new(&alp)) == NULL)
 		return 1;
 
-	if((nl = netlayer_new(SOCK_DGRAM, port, NULL)) == NULL)
-		goto _go_free0;
+	if((nl = netlayer_new(SOCK_DGRAM, port, NULL)) == -1)
+		goto _go_netlayer_close;
 
 	if((buf = malloc(alp.psize_ib)) == NULL)
 	{
 		printf("Error while alloc buf!\n");
-		goto _go_free1;
+		goto _go_netlayer_close;
 	}
 
 	printf("channels %d\nrate %d\nperiod size %d (in frames)\n",
@@ -74,21 +74,26 @@ main(int argc, char **argv)
 
 	while(1)
 	{
-		if((len = netlayer_recv(nl->socket_fd, (void*) buf,
-	alp.psize_ib, 0)) == -1)
+		if((len = netlayer_recv(nl, (void*) buf, alp.psize_ib, 0))
+	!= alp.psize_ib)
 		{
-			if(errno == EAGAIN)
-				continue;
+			if(len == -1)
+			{
+				if(errno == EAGAIN)
+					continue;
 
-			perror("Error in `main()`, recv() ");
-			goto _go_free2;
+				perror("Error in `main()`, recv() ");
+				goto _go_free_buf;
+			}
+			else
+				continue;
 		}
 
 		if(len == 0)
-			goto _go_free2;
+			goto _go_free_buf;
 
 		if((err = audiolayer_writei(al, (const void*) buf,
-	len / alp.fsize_ib)) < 0)
+	alp.psize_if)) < 0)
 		{
 			if(err == -EAGAIN)
 				continue;
@@ -103,18 +108,17 @@ main(int argc, char **argv)
 				printf("Error in `snd_pcm_writei()`: %s\n",
 	snd_strerror(err));
 
-			goto _go_free2;
+			goto _go_free_buf;
 		}
 
 	}
 
-_go_free2:
+_go_free_buf:
 	free(buf);
 
-_go_free1:
-	netlayer_free(nl);
+_go_netlayer_close:
+	netlayer_close(nl);
 
-_go_free0:
 	audiolayer_free(al);
 
 	printf("underrun = %lld\n", xrun_count);

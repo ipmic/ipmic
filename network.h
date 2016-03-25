@@ -1,17 +1,16 @@
+#include <stdlib.h>
 #include <netinet/in.h>
 
-typedef struct oc_netlayer_t
-{
-	int socket_type;
-	int socket_fd;
-	struct sockaddr_in socket_addr;
-} NetLayer;
+typedef int netlayer_t;
 
-NetLayer*
+netlayer_t
 netlayer_new(int, uint16_t, const char*);
 
-int
-netlayer_free(NetLayer*);
+inline int
+netlayer_close(netlayer_t);
 
 inline ssize_t
-netlayer_recv(int, void*, size_t, int);
+netlayer_recv(netlayer_t, void*, size_t, int);
+
+inline ssize_t
+netlayer_send(netlayer_t, const void*, size_t, int);
