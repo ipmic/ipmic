@@ -19,8 +19,8 @@
 
 #include <alsa/asoundlib.h>
 
-typedef struct audiolayer_t AudioL;
-typedef struct audiolayerparams_t AudioP;
+typedef struct audiolayer_t audiolayer_t;
+typedef struct audiolayerparams_t audioparam_t;
 
 struct audiolayerparams_t
 {
@@ -44,17 +44,17 @@ struct audiolayer_t
 	snd_pcm_t *handle;
 };
 
-AudioL*
-audiolayer_new(AudioP*);
+audiolayer_t*
+audiolayer_new(audioparam_t*);
 
 int
-audiolayer_free(AudioL*);
+audiolayer_free(audiolayer_t*);
 
 inline snd_pcm_sframes_t
-audiolayer_readi(AudioL*, void*, snd_pcm_uframes_t);
+audiolayer_readi(audiolayer_t*, void*, snd_pcm_uframes_t);
 
 inline snd_pcm_uframes_t
-audiolayer_writei(AudioL*, const void*, snd_pcm_uframes_t);
+audiolayer_writei(audiolayer_t*, const void*, snd_pcm_uframes_t);
 
 inline ssize_t
-audiolayer_frames_to_bytes(AudioL*, snd_pcm_sframes_t);
+audiolayer_frames_to_bytes(audiolayer_t*, snd_pcm_sframes_t);

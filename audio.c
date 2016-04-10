@@ -33,7 +33,7 @@
  */
 
 static int
-set_hw_params(AudioL *al, AudioP *ap)
+set_hw_params(audiolayer_t *al, audioparam_t *ap)
 {
 	int err;
 
@@ -74,17 +74,17 @@ set_hw_params(AudioL *al, AudioP *ap)
 	return 0;
 }
 
-AudioL*
-audiolayer_new(AudioP *ap)
+audiolayer_t*
+audiolayer_new(audioparam_t *ap)
 {
 	if(ap == NULL)
 		return NULL;
 
-	AudioL *al;
+	audiolayer_t *al;
 
 	int err;
 
-	if((al = malloc(sizeof(AudioL))) == NULL)
+	if((al = malloc(sizeof(audiolayer_t))) == NULL)
 		return NULL;
 
 	if((err = snd_pcm_open(&al->handle, ap->name,
@@ -107,7 +107,7 @@ audiolayer_new(AudioP *ap)
 }
 
 int
-audiolayer_free(AudioL *al)
+audiolayer_free(audiolayer_t *al)
 {
 	if(al == NULL)
 		return -1;
@@ -120,19 +120,19 @@ audiolayer_free(AudioL *al)
 }
 
 inline snd_pcm_sframes_t
-audiolayer_readi(AudioL *al, void *buffer, snd_pcm_uframes_t size)
+audiolayer_readi(audiolayer_t *al, void *buffer, snd_pcm_uframes_t size)
 {
 	return snd_pcm_readi(al->handle, buffer, size);
 }
 
 inline snd_pcm_uframes_t
-audiolayer_writei(AudioL *al, const void *buffer, snd_pcm_uframes_t size)
+audiolayer_writei(audiolayer_t *al, const void *buffer, snd_pcm_uframes_t size)
 {
 	return snd_pcm_writei(al->handle, buffer, size);
 }
 
 inline ssize_t
-audiolayer_frames_to_bytes(AudioL *al, snd_pcm_sframes_t frames)
+audiolayer_frames_to_bytes(audiolayer_t *al, snd_pcm_sframes_t frames)
 {
 	return snd_pcm_frames_to_bytes(al->handle, frames);
 }

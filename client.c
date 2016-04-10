@@ -27,9 +27,9 @@ long long xrun_count;
 
 netlayer_t nl;
 
-AudioL *al;
+audiolayer_t *al;
 
-AudioP alp;
+audioparam_t alp;
 
 int
 main(int argc, char **argv)
