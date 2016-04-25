@@ -17,97 +17,94 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* Client side */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "network.h"
 #include "audio.h"
+#include "common.h"
 
 long long xrun_count;
 
-netlayer_t nl;
-
-audiolayer_t *al;
-
-audioparam_t alp;
+extern audioparam_t alp;
+extern netparam_t nlp;
 
 int
 main(int argc, char **argv)
 {
-	if(argc < 8)
-	{
-		printf("usage: cmd <PCMname> <PCMformat> <channels> <rate> "
-	"<period_size> <port> <address>\n");
-		return 1;
-	}
-
 	int8_t *buf;
 	ssize_t len;
 	int err;
 
-	int port;
-	char *addr;
-
 	int index = 1;
 
+	if(argc < 8)
+	{
+		printf("usage: cmd <PCMname> <PCMformat> <channels> <rate> "
+		"<period_size> <port> <address>\n");
+		return 1;
+	}
+
+	/* Set audio and network parameters from command line */
 	alp.name = argv[index++];
 	alp.format = argv[index++];
 	alp.channels = atoi(argv[index++]);
 	alp.rate = atoi(argv[index++]);
 	alp.period_size = atoi(argv[index++]);
-
-	port = atoi(argv[index++]);
-	addr = argv[index++];
-
 	alp.capture = 1;
+	nlp.socket_type = SOCK_DGRAM;
+	nlp.port = atoi(argv[index++]);
+	nlp.addr = argv[index++];
 
-	if((al = audiolayer_new(&alp)) == NULL)
-		return 1;
+	/* Open audio layer */
+	if(audiolayer_open() == -1)
+		goto _go_audiolayer_close;
 
-	if((nl = netlayer_new(SOCK_DGRAM, port, addr)) == -1)
+	/* Open network layer */
+	if(netlayer_open() == -1)
 		goto _go_netlayer_close;
 
+	/* Allocate memory for buffer */
 	if((buf = malloc(alp.psize_ib)) == NULL)
 	{
-		printf("Error while alloc buf!\n");
+		printf("Error while allocating buffer!\n");
 		goto _go_netlayer_close;
 	}
 
+	/* Print info on terminal */
 	printf("channels %d\nrate %d\nperiod size %d (in frames)\n",
 	alp.channels, alp.rate, alp.psize_if);
 
 	while(1)
 	{
-		if((err = audiolayer_readi(al, buf, alp.psize_if)) !=
-	alp.psize_if)
+		if((err = audiolayer_readi(buf, alp.psize_if)) != alp.psize_if)
 		{
-			if(err < 0)
-			{
-				if(err == -EAGAIN)
-					continue;
-				else
-				if(err == -EPIPE)
-				{
-					xrun_count++;
-					snd_pcm_prepare(al->handle);
-					continue;
-				}
-				else
-					puts(snd_strerror(err));
-
-				goto _go_free_buf;
-			}
-			else
+			if(err == -EAGAIN)
 				continue;
+
+			if(err == -EPIPE)
+			{
+				xrun_count++;
+				audiolayer_prepare();
+				continue;
+			}
+
+			printf("Error in snd_pcm_readi(): %s\n",
+			snd_strerror(err));
+			sleeponesec();
+			continue;
 		}
 
-		if((len = netlayer_send(nl, buf, alp.psize_ib, 0)) == -1)
+		if((len = netlayer_send(buf, alp.psize_ib, 0)) != alp.psize_ib)
 		{
-			if(errno == EAGAIN)
-				continue;
-
-			perror("Error in `main()`, send()");
-			goto _go_free_buf;
+			if(len == -1 && errno != EAGAIN)
+			{
+				perror("Error in main(), send()");
+				sleeponesec();
+			}
+			continue;
 		}
 	}
 
@@ -115,9 +112,10 @@ _go_free_buf:
 	free(buf);
 
 _go_netlayer_close:
-	netlayer_close(nl);
+	netlayer_close();
 
-	audiolayer_free(al);
+_go_audiolayer_close:
+	audiolayer_close();
 
 	printf("overrun = %lld\n", xrun_count);
 

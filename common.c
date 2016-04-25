@@ -17,26 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <netinet/in.h>
+#include <stdio.h>
+#include <unistd.h>
 
-typedef int netlayer_t;
-typedef struct netlayerparams_t netparam_t;
-
-struct netlayerparams_t
+void
+sleeponesec(void)
 {
-	int socket_type;
-	int port;
-	char *addr;
-};
-
-int
-netlayer_open(void);
-
-int
-netlayer_close(void);
-
-ssize_t
-netlayer_recv(void*, size_t, int);
-
-ssize_t
-netlayer_send(const void*, size_t, int);
+	printf("Sleeping one second ...\n");
+	sleep(1);
+}

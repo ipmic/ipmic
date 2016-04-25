@@ -19,7 +19,7 @@
 
 #include <alsa/asoundlib.h>
 
-typedef struct audiolayer_t audiolayer_t;
+typedef snd_pcm_t audiolayer_t;
 typedef struct audiolayerparams_t audioparam_t;
 
 struct audiolayerparams_t
@@ -29,7 +29,7 @@ struct audiolayerparams_t
 	int channels;
 	int rate;
 	int period_size; /* in frames */
-	int capture; /* is capture device? (bool) */
+	int capture; /* is capture device? (bool) If 0 it's playback. */
 
 /* internal defined: */
 	snd_pcm_format_t pcm_format;
@@ -39,22 +39,17 @@ struct audiolayerparams_t
 	size_t psize_ib; /* period size (in bytes) */
 };
 
-struct audiolayer_t
-{
-	snd_pcm_t *handle;
-};
-
-audiolayer_t*
-audiolayer_new(audioparam_t*);
+int
+audiolayer_open(void);
 
 int
-audiolayer_free(audiolayer_t*);
+audiolayer_close(void);
 
-inline snd_pcm_sframes_t
-audiolayer_readi(audiolayer_t*, void*, snd_pcm_uframes_t);
+snd_pcm_sframes_t
+audiolayer_readi(void*, snd_pcm_uframes_t);
 
-inline snd_pcm_uframes_t
-audiolayer_writei(audiolayer_t*, const void*, snd_pcm_uframes_t);
+snd_pcm_sframes_t
+audiolayer_writei(const void*, snd_pcm_uframes_t);
 
-inline ssize_t
-audiolayer_frames_to_bytes(audiolayer_t*, snd_pcm_sframes_t);
+inline void
+audiolayer_prepare(void);

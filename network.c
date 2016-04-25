@@ -17,99 +17,113 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <arpa/inet.h>
-
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include "network.h"
 
 #define DEFAULT_FAMILY AF_INET
 
+static netlayer_t nl;
+netparam_t nlp;
+
 int socket_priority = 6; /* 6 = high priority */
 
-netlayer_t
-netlayer_new(int socket_type, uint16_t port, const char *addr)
+int
+netlayer_open(void)
 {
-	netlayer_t nl;
-
 	struct sockaddr_in socket_addr;
 
 	int tmpsfd;
 
-	if((nl = socket(DEFAULT_FAMILY, socket_type, 0)) == -1)
-		goto _go_return_err;
+	if((nl = socket(DEFAULT_FAMILY, nlp.socket_type, 0)) == -1)
+		return -1;
 
 	socket_addr.sin_family = DEFAULT_FAMILY;
-	socket_addr.sin_port = (in_port_t) htons(port);
+	socket_addr.sin_port = (in_port_t) htons(nlp.port);
 
-	/* Only works with UDP, TCP opens a new socket with accept()
-	 * possible solution is move it down :-) */
-	setsockopt(nl, SOL_SOCKET, SO_PRIORITY, &socket_priority, sizeof(int));
-
-	if(addr == NULL) /* if NULL we're in server mode */
+	if(nlp.addr == NULL) /* if NULL we're in server mode */
 	{
 		socket_addr.sin_addr.s_addr = INADDR_ANY;
 
 		if(bind(nl, (struct sockaddr*) &socket_addr,
-	sizeof(struct sockaddr_in)) == -1)
-			goto _go_return_err;
+		sizeof(struct sockaddr_in)) == -1)
+			return -1;
 
-		if(socket_type == SOCK_STREAM)
+		if(nlp.socket_type == SOCK_STREAM)
 		{
 			if(listen(nl, 1) == -1)
-				goto _go_return_err;
+				return -1;
 
 			if((tmpsfd = accept(nl, NULL, NULL)) == -1)
-				goto _go_return_err;
+				return -1;
 
 			close(nl);
 			nl = tmpsfd;
-
-			/* set TCP_NODELAY option */
-			setsockopt(nl, IPPROTO_TCP, TCP_NODELAY, NULL, 0);
 		}
 	}
 	else /* else we're in client mode */
 	{
-		if((socket_addr.sin_addr.s_addr = inet_addr(addr)) == -1)
-			goto _go_return_err;
+		if((socket_addr.sin_addr.s_addr = inet_addr(nlp.addr)) == -1)
+			return -1;
 
 		if(connect(nl, (struct sockaddr*) &socket_addr,
-	sizeof(struct sockaddr_in)) == -1)
-			goto _go_return_err;
+		sizeof(struct sockaddr_in)) == -1)
+			return -1;
 	}
 
-	return nl;
+	if(nlp.socket_type == SOCK_STREAM)
+		/* set TCP_NODELAY option */
+		setsockopt(nl, IPPROTO_TCP, TCP_NODELAY, NULL, 0);
 
-_go_return_err:
-	return -1;
+	setsockopt(nl, SOL_SOCKET, SO_PRIORITY, &socket_priority, sizeof(int));
+
+	return 0;
 }
 
-inline int
-netlayer_close(netlayer_t nl)
+int
+netlayer_close(void)
 {
 	return close(nl);
 }
 
-/*
- * The `recv()` function masked
- */
-inline ssize_t
-netlayer_recv(netlayer_t sockfd, void *buf, size_t len, int flags)
+ssize_t
+netlayer_recv(void *buf, size_t len, int flags)
 {
-	return recv(sockfd, buf, len, flags);
+	ssize_t res, ret;
+
+	ret = len;
+
+	while(len)
+	{
+		if((res = recv(nl, buf, len, flags)) < 0)
+			return res; /* `res` serves to parse result */
+		len -= res;
+		buf += res;
+	}
+
+	return ret;
 }
 
-/*
- * The `send()` function masked
- */
-inline ssize_t
-netlayer_send(netlayer_t sockfd, const void *buf, size_t len, int flags)
+ssize_t
+netlayer_send(const void *buf, size_t len, int flags)
 {
-	return send(sockfd, buf, len, flags);
+	ssize_t res, ret;
+
+	ret = len;
+
+	while(len)
+	{
+		if((res = send(nl, buf, len, flags)) < 0)
+			return res;
+		len -= res;
+		buf += res;
+	}
+
+	return ret;
 }
