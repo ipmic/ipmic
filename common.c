@@ -20,9 +20,33 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "audio.h"
+#include "network.h"
+
+/* At the moment we don't have a version */
+#define VERSION "0.0"
+
+extern audioparam_t alp;
+extern netparam_t nlp;
+
 void
 sleeponesec(void)
 {
 	printf("Sleeping one second ...\n");
 	sleep(1);
+}
+
+void
+print_general_info(void)
+{
+	printf("IPMic version %s (%s mode)\n"
+	"channels %d\n"
+	"rate %d\n"
+	"period size %d (in frames)\n"
+	"period size %d (in bytes)\n"
+	"network port %d\n"
+	"network address %s\n\n",
+	VERSION,
+	alp.type == SND_PCM_STREAM_PLAYBACK ? "server" : "client",
+	alp.channels, alp.rate, alp.psize_if, alp.psize_ib, nlp.port, nlp.addr);
 }

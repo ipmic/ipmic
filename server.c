@@ -40,21 +40,20 @@ main(int argc, char **argv)
 
 	int index = 1;
 
-	if(argc < 7)
+	if(argc < 2)
 	{
-		printf("usage: cmd <PCMname> <PCMformat> <channels> <rate> "
-		"<period_size> <port>\n");
+		printf("usage: cmd <port>\n");
 		return 1;
 	}
 
 	/* Set audio and network parameters from command line */
-	alp.name = argv[index++];
-	alp.format = argv[index++];
-	alp.channels = atoi(argv[index++]);
-	alp.rate = atoi(argv[index++]);
-	alp.period_size = atoi(argv[index++]);
-	alp.capture = 0;
-	nlp.socket_type = SOCK_DGRAM;
+	alp.name = DEFAULT_PCMNAME;
+	alp.format = DEFAULT_PCMFORMAT;
+	alp.channels = DEFAULT_PCMCHANNELS;
+	alp.rate = DEFAULT_PCMRATE;
+	alp.period_size = DEFAULT_PCMPSIZE;
+	alp.type = SND_PCM_STREAM_PLAYBACK;
+	nlp.socket_type = DEFAULT_SOCKETTYPE;
 	nlp.port = atoi(argv[index++]);
 	nlp.addr = NULL;
 
@@ -74,8 +73,7 @@ main(int argc, char **argv)
 	}
 
 	/* Print info on terminal */
-	printf("channels %d\nrate %d\nperiod size %d (in frames)\n",
-	alp.channels, alp.rate, alp.psize_if);
+	print_general_info(); /* see common.c */
 
 	while(1)
 	{

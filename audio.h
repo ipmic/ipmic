@@ -29,7 +29,7 @@ struct audiolayerparams_t
 	int channels;
 	int rate;
 	int period_size; /* in frames */
-	int capture; /* is capture device? (bool) If 0 it's playback. */
+	int type; /* playback or capture */
 
 /* internal defined: */
 	snd_pcm_format_t pcm_format;

@@ -87,8 +87,7 @@ set_hw_params(void)
 int
 audiolayer_open(void)
 {
-	if(snd_pcm_open(&al, alp.name,
-	alp.capture ? SND_PCM_STREAM_CAPTURE : SND_PCM_STREAM_PLAYBACK, 0) < 0
+	if(snd_pcm_open(&al, alp.name, alp.type, 0) < 0
 	|| set_hw_params() == -1)
 		return -1;
 
