@@ -17,18 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define DEFAULT_PCMNAME "ipmicpcm"
-#define DEFAULT_PCMFORMAT "S16_LE"
-#define DEFAULT_PCMCHANNELS 1
-#define DEFAULT_PCMRATE 22050
-/* PCM default period size (in frames)
- * 1225 F/ 1/18s    or    2450 B/ 1/18s
- */
-#define DEFAULT_PCMPSIZE 1225
-
-/* Default is UDP */
-#define DEFAULT_SOCKETTYPE SOCK_DGRAM
-
 void
 sleeponesec(void);
 

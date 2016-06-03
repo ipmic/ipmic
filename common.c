@@ -47,6 +47,7 @@ print_general_info(void)
 	"network port %d\n"
 	"network address %s\n\n",
 	VERSION,
-	alp.type == SND_PCM_STREAM_PLAYBACK ? "server" : "client",
-	alp.channels, alp.rate, alp.psize_if, alp.psize_ib, nlp.port, nlp.addr);
+	alp.type == AL_PLAYBACK ? "server" : "client",
+	DEFAULT_CHANNELS, DEFAULT_RATE, alp.period_size, alp.psize_ib, nlp.port,
+	nlp.addr);
 }

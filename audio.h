@@ -17,26 +17,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <alsa/asoundlib.h>
+#ifdef _TINYALSA
+#include	"tinyalsa.h"
+#else
+#include	<alsa/asoundlib.h>
+#endif
 
+#define AL_CAPTURE 0
+#define AL_PLAYBACK 1
+
+#define DEFAULT_CHANNELS 1
+#define DEFAULT_RATE 22050
+
+#ifdef _TINYALSA
+typedef struct pcm audiolayer_t;
+#else
 typedef snd_pcm_t audiolayer_t;
+#endif
 typedef struct audiolayerparams_t audioparam_t;
 
 struct audiolayerparams_t
 {
-	char *name;
-	char *format;
-	int channels;
-	int rate;
-	int period_size; /* in frames */
 	int type; /* playback or capture */
+	int period_size; /* in frames */
 
 /* internal defined: */
-	snd_pcm_format_t pcm_format;
-	size_t ssize_ib; /* sample size (in bytes) */
-	size_t fsize_ib; /* frame size (in bytes) */
-	snd_pcm_uframes_t psize_if; /* period size (in frames) */
-	size_t psize_ib; /* period size (in bytes) */
+	unsigned int fsize_ib; /* frame size (in bytes) */
+	unsigned int psize_ib; /* period size (in bytes) */
 };
 
 int
@@ -45,11 +52,11 @@ audiolayer_open(void);
 int
 audiolayer_close(void);
 
-snd_pcm_sframes_t
-audiolayer_readi(void*, snd_pcm_uframes_t);
+int
+audiolayer_read(void*, unsigned int);
 
-snd_pcm_sframes_t
-audiolayer_writei(const void*, snd_pcm_uframes_t);
+int
+audiolayer_write(const void*, unsigned int);
 
 inline void
 audiolayer_prepare(void);

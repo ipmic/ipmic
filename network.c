@@ -45,7 +45,7 @@ netlayer_open(void)
 		return -1;
 
 	socket_addr.sin_family = DEFAULT_FAMILY;
-	socket_addr.sin_port = (in_port_t) htons(nlp.port);
+	socket_addr.sin_port = htons(nlp.port);
 
 	if(nlp.addr == NULL) /* if NULL we're in server mode */
 	{

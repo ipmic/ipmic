@@ -18,6 +18,10 @@
  */
 
 #include <netinet/in.h>
+#include <sys/socket.h>
+
+/* Default is UDP */
+#define DEFAULT_SOCKETTYPE SOCK_DGRAM
 
 typedef int netlayer_t;
 typedef struct netlayerparams_t netparam_t;

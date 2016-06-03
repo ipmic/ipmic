@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* stdio.h  for debug purposes */
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "audio.h"
@@ -41,6 +43,8 @@ audioparam_t alp;
  * We'll have 2205 Bytes per 1/20 second.
  */
 
+#ifndef _TINYALSA
+
 static int
 set_hw_params(void)
 {
@@ -49,47 +53,66 @@ set_hw_params(void)
 	snd_pcm_hw_params_t *hw_params;
 
 	snd_pcm_hw_params_alloca(&hw_params);
-
 	snd_pcm_hw_params_any(al, hw_params);
 
+	/* Set access */
 	snd_pcm_hw_params_set_access(al, hw_params,
 	SND_PCM_ACCESS_RW_INTERLEAVED);
 
-	/* Translate string into sample format and set it */
-	alp.pcm_format = snd_pcm_format_value(alp.format);
-	snd_pcm_hw_params_set_format(al, hw_params, alp.pcm_format);
+	/* Set format */
+	snd_pcm_hw_params_set_format(al, hw_params, SND_PCM_FORMAT_S16_LE);
 
 	/* Set number of channels */
-	snd_pcm_hw_params_set_channels(al, hw_params, alp.channels);
+	snd_pcm_hw_params_set_channels(al, hw_params, DEFAULT_CHANNELS);
 
 	/* Set rate */
-	snd_pcm_hw_params_set_rate_near(al, hw_params, &alp.rate, NULL);
+	snd_pcm_hw_params_set_rate(al, hw_params, DEFAULT_RATE, 0);
 
-	/* Get period size from parameters and set it */
-	alp.psize_if = alp.period_size;
-	snd_pcm_hw_params_set_period_size_near(al, hw_params, &alp.psize_if,
-	NULL);
+	/* Set period size from parameters */
+	snd_pcm_hw_params_set_period_size(al, hw_params, alp.period_size, 0);
 
 	if((err = snd_pcm_hw_params(al, hw_params)) < 0)
 		return -1;
 
-	if((alp.ssize_ib = snd_pcm_format_size(alp.pcm_format, 1)) < 0)
-		return -1;
-
-	/* Calculate frame and period size (in bytes) to know it in the future
-	*/
-	alp.fsize_ib = alp.ssize_ib * alp.channels;
-	alp.psize_ib = alp.psize_if * alp.fsize_ib;
-
 	return 0;
 }
+
+#endif /* ifndef _TINYALSA */
 
 int
 audiolayer_open(void)
 {
-	if(snd_pcm_open(&al, alp.name, alp.type, 0) < 0
-	|| set_hw_params() == -1)
+	/* Calculate some sizes (in bytes) to know it in the future */
+	alp.fsize_ib = 2 * DEFAULT_CHANNELS; /* 16-bit = 2 Bytes */
+	alp.psize_ib = alp.period_size * alp.fsize_ib;
+
+#ifdef _TINYALSA
+	struct pcm_config pcmconf;
+
+	/* Set format, channels, rate, period size and period count */
+	pcmconf.channels = DEFAULT_CHANNELS;
+	pcmconf.format = PCM_FORMAT_S16_LE;
+	pcmconf.rate = DEFAULT_RATE;
+	pcmconf.period_size = alp.period_size; /* in frames */
+	pcmconf.period_count = 2;
+	pcmconf.start_threshold = 0;
+	pcmconf.stop_threshold = 0;
+	pcmconf.silence_threshold = 0;
+
+	al = pcm_open(0, 0, (alp.type == AL_CAPTURE ? PCM_IN : PCM_OUT),
+	&pcmconf);
+
+	if(!pcm_is_ready(al))
+	{
+		fprintf(stderr, "tinyalsa Error: %s\n", pcm_get_error(al));
 		return -1;
+	}
+#else
+	if(snd_pcm_open(&al, "ipmic",
+	(alp.type == AL_CAPTURE ? SND_PCM_STREAM_CAPTURE :
+	SND_PCM_STREAM_PLAYBACK), 0) < 0 || set_hw_params() == -1)
+		return -1;
+#endif
 
 	return 0;
 }
@@ -97,49 +120,61 @@ audiolayer_open(void)
 int
 audiolayer_close(void)
 {
+#ifdef _TINYALSA
+	pcm_close(al);
+#else
 	snd_pcm_close(al);
-
-	#if 0
-	/* Is it wrong!? */
-	_go_free:
-	free(al);
-	#endif
+#endif
 
 	return 0;
 }
 
-snd_pcm_sframes_t
-audiolayer_readi(void *buffer, snd_pcm_uframes_t size)
+int
+audiolayer_read(void *buffer, unsigned int frames)
 {
-	snd_pcm_sframes_t res, ret;
+	int ret;
 
-	ret = size;
+	ret = frames;
+#ifdef _TINYALSA
+	if(pcm_read(al, buffer, frames * alp.fsize_ib))
+		return -1;
+#else
+	int res;
 
-	while(size)
+	ret = frames;
+
+	while(frames)
 	{
-		if((res = snd_pcm_readi(al, buffer, size)) < 0)
+		if((res = snd_pcm_readi(al, buffer, frames)) < 0)
 			return res;
-		size -= res;
+		frames -= res;
 		buffer += res * alp.fsize_ib;
 	}
+#endif
 
 	return ret;
 }
 
-snd_pcm_sframes_t
-audiolayer_writei(const void *buffer, snd_pcm_uframes_t size)
+int
+audiolayer_write(const void *buffer, unsigned int frames)
 {
-	snd_pcm_sframes_t res, ret;
+	int ret;
 
-	ret = size;
+	ret = frames;
+#ifdef _TINYALSA
+	if(pcm_write(al, buffer, frames * alp.fsize_ib))
+		return -1;
+#else
+	int res;
 
-	while(size)
+	while(frames)
 	{
-		if((res = snd_pcm_writei(al, buffer, size)) < 0)
+		if((res = snd_pcm_writei(al, buffer, frames)) < 0)
 			return res;
-		size -= res;
+		frames -= res;
 		buffer += res * alp.fsize_ib;
 	}
+#endif
 
 	return ret;
 }
@@ -147,5 +182,9 @@ audiolayer_writei(const void *buffer, snd_pcm_uframes_t size)
 inline void
 audiolayer_prepare(void)
 {
+#ifdef _TINYALSA
+	pcm_prepare(al);
+#else
 	snd_pcm_prepare(al);
+#endif
 }

@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "network.h"
 #include "audio.h"
@@ -34,50 +35,51 @@ extern netparam_t nlp;
 int
 main(int argc, char **argv)
 {
-	int8_t *buf;
-	ssize_t len;
+	void *buf;
+	int len;
 	int err;
 
-	int index = 1;
+	int argidx = 0;
 
-	if(argc < 3)
+	if(argc < 4)
 	{
-		printf("usage: cmd <port> <address>\n");
+		printf("usage: cmd <period_size(in frames)> <port> "
+		"<address>\n");
 		return 1;
 	}
 
 	/* Set audio and network parameters from command line */
-	alp.name = DEFAULT_PCMNAME;
-	alp.format = DEFAULT_PCMFORMAT;
-	alp.channels = DEFAULT_PCMCHANNELS;
-	alp.rate = DEFAULT_PCMRATE;
-	alp.period_size = DEFAULT_PCMPSIZE;
-	alp.type = SND_PCM_STREAM_CAPTURE;
-	nlp.socket_type = SOCK_DGRAM;
-	nlp.port = atoi(argv[index++]);
-	nlp.addr = argv[index++];
-
-	/* Open audio layer */
-	if(audiolayer_open() == -1)
-		goto _go_audiolayer_close;
+	alp.type = AL_CAPTURE; /* client will capture sound */
+	alp.period_size = atoi(argv[++argidx]);
+	nlp.socket_type = DEFAULT_SOCKETTYPE;
+	nlp.port = atoi(argv[++argidx]);
+	nlp.addr = argv[++argidx];
 
 	/* Open network layer */
 	if(netlayer_open() == -1)
+	{
+		fprintf(stderr, ">> Error in netlayer_open()\n");
+		return 1;
+	}
+
+	/* Open audio layer */
+	if(audiolayer_open() == -1)
+	{
+		fprintf(stderr, ">> Error in audiolayer_open()\n");
 		goto _go_netlayer_close;
+	}
 
 	/* Allocate memory for buffer */
 	if((buf = malloc(alp.psize_ib)) == NULL)
-	{
-		printf("Error while allocating buffer!\n");
-		goto _go_netlayer_close;
-	}
+		goto _go_audiolayer_close;
 
 	/* Print info on terminal */
 	print_general_info(); /* see common.c */
 
 	while(1)
 	{
-		if((err = audiolayer_readi(buf, alp.psize_if)) != alp.psize_if)
+		if((err = audiolayer_read(buf, alp.period_size)) !=
+		alp.period_size)
 		{
 			if(err == -EAGAIN)
 				continue;
@@ -89,8 +91,7 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			printf("Error in snd_pcm_readi(): %s\n",
-			snd_strerror(err));
+			fprintf(stderr, ">> Error in audiolayer_read()\n");
 			sleeponesec();
 			continue;
 		}
@@ -99,7 +100,8 @@ main(int argc, char **argv)
 		{
 			if(len == -1 && errno != EAGAIN)
 			{
-				perror("Error in main(), send()");
+				fprintf(stderr, ">> Error in "
+				"netlayer_send()\n");
 				sleeponesec();
 			}
 			continue;
@@ -108,12 +110,10 @@ main(int argc, char **argv)
 
 _go_free_buf:
 	free(buf);
-
-_go_netlayer_close:
-	netlayer_close();
-
 _go_audiolayer_close:
 	audiolayer_close();
+_go_netlayer_close:
+	netlayer_close();
 
 	printf("overrun = %lld\n", xrun_count);
 
