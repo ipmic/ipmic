@@ -55,6 +55,9 @@ main(int argc, char **argv)
 	nlp.port = atoi(argv[++argidx]);
 	nlp.addr = argv[++argidx];
 
+	/* Try to go realtime :-) */
+	go_realtime();
+
 	/* Open network layer */
 	if(netlayer_open() == -1)
 	{

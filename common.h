@@ -22,3 +22,6 @@ sleeponesec(void);
 
 void
 print_general_info(void);
+
+int
+go_realtime(void);

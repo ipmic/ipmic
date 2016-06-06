@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <sched.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -50,4 +51,26 @@ print_general_info(void)
 	alp.type == AL_PLAYBACK ? "server" : "client",
 	DEFAULT_CHANNELS, DEFAULT_RATE, alp.period_size, alp.psize_ib, nlp.port,
 	nlp.addr);
+}
+
+int
+go_realtime(void)
+{
+	int max_pri;
+	struct sched_param sp;
+
+	if(sched_getparam(0, &sp))
+		goto _go_err;
+
+	max_pri = sched_get_priority_max(SCHED_FIFO);
+	sp.sched_priority = max_pri;
+
+	if(sched_setscheduler(0, SCHED_FIFO, &sp))
+		goto _go_err;
+
+	return 0;
+
+_go_err:
+	printf(">> Warning: We're not realtime! Are you root?\n");
+	return -1;
 }
