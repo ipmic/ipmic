@@ -101,7 +101,7 @@ netlayer_recv(void *buf, size_t len, int flags)
 
 	while(len)
 	{
-		if((res = recv(nl, buf, len, flags)) < 0)
+		if((res = read(nl, buf, len)) < 0)
 			return res; /* `res` serves to parse result */
 		len -= res;
 		buf += res;
@@ -119,7 +119,7 @@ netlayer_send(const void *buf, size_t len, int flags)
 
 	while(len)
 	{
-		if((res = send(nl, buf, len, flags)) < 0)
+		if((res = write(nl, buf, len)) < 0)
 			return res;
 		len -= res;
 		buf += res;
