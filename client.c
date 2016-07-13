@@ -27,10 +27,12 @@
 #include "audio.h"
 #include "common.h"
 
-long long xrun_count;
+extern long long xrun_count;
 
 extern audioparam_t alp;
 extern netparam_t nlp;
+
+extern int keep_running;
 
 int
 main(int argc, char **argv)
@@ -55,31 +57,10 @@ main(int argc, char **argv)
 	nlp.port = atoi(argv[++argidx]);
 	nlp.addr = argv[++argidx];
 
-	/* Try to go realtime :-) */
-	go_realtime();
-
-	/* Open network layer */
-	if(netlayer_open() == -1)
-	{
-		fprintf(stderr, ">> Error in netlayer_open()\n");
+	if(common_init(&buf) == -1)
 		return 1;
-	}
 
-	/* Open audio layer */
-	if(audiolayer_open() == -1)
-	{
-		fprintf(stderr, ">> Error in audiolayer_open()\n");
-		goto _go_netlayer_close;
-	}
-
-	/* Allocate memory for buffer */
-	if((buf = malloc(alp.psize_ib)) == NULL)
-		goto _go_audiolayer_close;
-
-	/* Print info on terminal */
-	print_general_info(); /* see common.c */
-
-	while(1)
+	while(keep_running)
 	{
 		if((err = audiolayer_read(buf, alp.period_size)) !=
 		alp.period_size)
@@ -111,14 +92,5 @@ main(int argc, char **argv)
 		}
 	}
 
-_go_free_buf:
-	free(buf);
-_go_audiolayer_close:
-	audiolayer_close();
-_go_netlayer_close:
-	netlayer_close();
-
-	printf("overrun = %lld\n", xrun_count);
-
-	return 1;
+	return common_finit(buf);
 }

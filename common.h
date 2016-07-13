@@ -24,4 +24,7 @@ void
 print_general_info(void);
 
 int
-go_realtime(void);
+common_finit(void*);
+
+int
+common_init(void**);

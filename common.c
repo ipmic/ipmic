@@ -18,7 +18,9 @@
  */
 
 #include <sched.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "audio.h"
@@ -27,8 +29,55 @@
 /* At the moment we don't have a version */
 #define VERSION "0.0"
 
+long long xrun_count;
+
 extern audioparam_t alp;
 extern netparam_t nlp;
+
+int keep_running = 1;
+
+static void
+signal_handler(int signum)
+{
+	keep_running = 0;
+	return;
+}
+
+static int
+go_realtime(void)
+{
+	int max_pri;
+	struct sched_param sp;
+
+	if(sched_getparam(0, &sp))
+		goto _go_err;
+
+	max_pri = sched_get_priority_max(SCHED_FIFO);
+	sp.sched_priority = max_pri;
+
+	if(sched_setscheduler(0, SCHED_FIFO, &sp))
+		goto _go_err;
+
+	return 0;
+
+_go_err:
+	printf(">> Warning: We're not realtime! Are you root?\n");
+	return -1;
+}
+
+static const struct sigaction sact = {
+	signal_handler,
+	0,
+	0,
+	0,
+};
+
+static void
+register_signals(void)
+{
+	sigaction(SIGINT, &sact, NULL);
+	return;
+}
 
 void
 sleeponesec(void)
@@ -54,23 +103,59 @@ print_general_info(void)
 }
 
 int
-go_realtime(void)
+common_finit(void *buf)
 {
-	int max_pri;
-	struct sched_param sp;
+	free(buf);
+	audiolayer_close();
+	netlayer_close();
 
-	if(sched_getparam(0, &sp))
-		goto _go_err;
+	printf("%s: %d\n", (alp.type == AL_PLAYBACK ? "underrun" : "overrun"),
+	xrun_count);
 
-	max_pri = sched_get_priority_max(SCHED_FIFO);
-	sp.sched_priority = max_pri;
+	if(!keep_running)
+	{
+		printf("A signal has caught! Ending ...\n");
+		return 0;
+	}
 
-	if(sched_setscheduler(0, SCHED_FIFO, &sp))
-		goto _go_err;
+	return 1;
+}
+
+int
+common_init(void **buf)
+{
+	/* Open network layer */
+	if(netlayer_open() == -1)
+	{
+		fprintf(stderr, ">> Error in netlayer_open()\n");
+		return -1;
+	}
+
+	/* Open audio layer */
+	if(audiolayer_open() == -1)
+	{
+		fprintf(stderr, ">> Error in audiolayer_open()\n");
+		goto _go_netlayer_close;
+	}
+
+	/* Allocate memory for buffer */
+	if((*buf = malloc(alp.psize_ib)) == NULL)
+		goto _go_audiolayer_close;
+
+	/* Print info on terminal */
+	print_general_info();
+
+	/* Try to go realtime :-) */
+	go_realtime();
+
+	register_signals();
 
 	return 0;
 
-_go_err:
-	printf(">> Warning: We're not realtime! Are you root?\n");
+_go_audiolayer_close:
+	audiolayer_close();
+_go_netlayer_close:
+	netlayer_close();
+
 	return -1;
 }
