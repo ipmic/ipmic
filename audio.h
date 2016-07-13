@@ -58,5 +58,5 @@ audiolayer_read(void*, unsigned int);
 int
 audiolayer_write(const void*, unsigned int);
 
-inline void
+void
 audiolayer_prepare(void);

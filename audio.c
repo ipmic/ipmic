@@ -179,7 +179,7 @@ audiolayer_write(const void *buffer, unsigned int frames)
 	return ret;
 }
 
-inline void
+void
 audiolayer_prepare(void)
 {
 #ifdef _TINYALSA
