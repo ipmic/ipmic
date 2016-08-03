@@ -30,6 +30,7 @@ struct netlayerparams_t
 {
 	int socket_type;
 	int port;
+	int buffer_size;
 	char *addr;
 };
 

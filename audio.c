@@ -82,10 +82,6 @@ set_hw_params(void)
 int
 audiolayer_open(void)
 {
-	/* Calculate some sizes (in bytes) to know it in the future */
-	alp.fsize_ib = 2 * DEFAULT_CHANNELS; /* 16-bit = 2 Bytes */
-	alp.psize_ib = alp.period_size * alp.fsize_ib;
-
 #ifdef _TINYALSA
 	struct pcm_config pcmconf;
 
@@ -136,7 +132,7 @@ audiolayer_read(void *buffer, unsigned int frames)
 
 	ret = frames;
 #ifdef _TINYALSA
-	if(pcm_read(al, buffer, frames * alp.fsize_ib))
+	if(pcm_read(al, buffer, frames_to_bytes(frames)))
 		return -1;
 #else
 	int res;
@@ -148,7 +144,7 @@ audiolayer_read(void *buffer, unsigned int frames)
 		if((res = snd_pcm_readi(al, buffer, frames)) < 0)
 			return res;
 		frames -= res;
-		buffer += res * alp.fsize_ib;
+		buffer += frames_to_bytes(res);
 	}
 #endif
 
@@ -162,7 +158,7 @@ audiolayer_write(const void *buffer, unsigned int frames)
 
 	ret = frames;
 #ifdef _TINYALSA
-	if(pcm_write(al, buffer, frames * alp.fsize_ib))
+	if(pcm_write(al, buffer, frames_to_bytes(frames)))
 		return -1;
 #else
 	int res;
@@ -172,7 +168,7 @@ audiolayer_write(const void *buffer, unsigned int frames)
 		if((res = snd_pcm_writei(al, buffer, frames)) < 0)
 			return res;
 		frames -= res;
-		buffer += res * alp.fsize_ib;
+		buffer += frames_to_bytes(res);
 	}
 #endif
 

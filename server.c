@@ -54,6 +54,7 @@ main(int argc, char **argv)
 	alp.period_size = atoi(argv[++argidx]);
 	nlp.socket_type = DEFAULT_SOCKETTYPE;
 	nlp.port = atoi(argv[++argidx]);
+	nlp.buffer_size = frames_to_bytes(alp.period_size);
 	nlp.addr = NULL;
 
 	if(common_init(&buf) == -1)
@@ -61,7 +62,7 @@ main(int argc, char **argv)
 
 	while(keep_running)
 	{
-		if((len = netlayer_recv(buf, alp.psize_ib, 0)) != alp.psize_ib)
+		if((len = netlayer_recv(buf, nlp.buffer_size, 0)) < 0)
 		{
 			if(len == -1 && errno != EAGAIN)
 			{
@@ -72,8 +73,8 @@ main(int argc, char **argv)
 			continue;
 		}
 
-		if((err = audiolayer_write((const void*) buf, alp.period_size))
-		!= alp.period_size)
+		if((err = audiolayer_write((const void*) buf,
+		bytes_to_frames(nlp.buffer_size))) < 0)
 		{
 			if(err == -EAGAIN)
 				continue;

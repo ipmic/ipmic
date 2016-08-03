@@ -29,6 +29,9 @@
 #define DEFAULT_CHANNELS 1
 #define DEFAULT_RATE 22050
 
+#define bytes_to_frames(bytes) (bytes / 2 * DEFAULT_CHANNELS)
+#define frames_to_bytes(frames) (frames * 2 * DEFAULT_CHANNELS)
+
 #ifdef _TINYALSA
 typedef struct pcm audiolayer_t;
 #else
@@ -40,10 +43,6 @@ struct audiolayerparams_t
 {
 	int type; /* playback or capture */
 	int period_size; /* in frames */
-
-/* internal defined: */
-	unsigned int fsize_ib; /* frame size (in bytes) */
-	unsigned int psize_ib; /* period size (in bytes) */
 };
 
 int

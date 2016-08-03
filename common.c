@@ -97,9 +97,9 @@ print_general_info(void)
 	"network port %d\n"
 	"network address %s\n\n",
 	VERSION,
-	alp.type == AL_PLAYBACK ? "server" : "client",
-	DEFAULT_CHANNELS, DEFAULT_RATE, alp.period_size, alp.psize_ib, nlp.port,
-	nlp.addr);
+	alp.type == AL_PLAYBACK ? "server" : "client", DEFAULT_CHANNELS,
+	DEFAULT_RATE, alp.period_size, frames_to_bytes(alp.period_size),
+	nlp.port, nlp.addr);
 }
 
 int
@@ -139,7 +139,7 @@ common_init(void **buf)
 	}
 
 	/* Allocate memory for buffer */
-	if((*buf = malloc(alp.psize_ib)) == NULL)
+	if((*buf = malloc(nlp.buffer_size)) == NULL)
 		goto _go_audiolayer_close;
 
 	/* Print info on terminal */
