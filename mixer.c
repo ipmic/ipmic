@@ -28,12 +28,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
+#include <time.h>
 
 #include <sys/ioctl.h>
 
@@ -187,6 +189,13 @@ struct mixer_ctl *mixer_get_ctl(struct mixer *mixer, unsigned int id)
 
 struct mixer_ctl *mixer_get_ctl_by_name(struct mixer *mixer, const char *name)
 {
+    return mixer_get_ctl_by_name_and_index(mixer, name, 0);
+}
+
+struct mixer_ctl *mixer_get_ctl_by_name_and_index(struct mixer *mixer,
+                                                  const char *name,
+                                                  unsigned int index)
+{
     unsigned int n;
     struct mixer_ctl *ctl;
 
@@ -197,7 +206,8 @@ struct mixer_ctl *mixer_get_ctl_by_name(struct mixer *mixer, const char *name)
 
     for (n = 0; n < mixer->count; n++)
         if (!strcmp(name, (char*) ctl[n].info.id.name))
-            return &ctl[n];
+            if (index-- == 0)
+                return mixer->ctl + n;
 
     return NULL;
 }
@@ -366,7 +376,11 @@ int mixer_ctl_get_array(struct mixer_ctl *ctl, void *array, size_t count)
             struct snd_ctl_tlv *tlv;
             int ret;
 
+            if (count > SIZE_MAX - sizeof(*tlv))
+                return -EINVAL;
             tlv = calloc(1, sizeof(*tlv) + count);
+            if (!tlv)
+                return -ENOMEM;
             tlv->numid = ctl->info.id.numid;
             tlv->length = count;
             ret = ioctl(ctl->mixer->fd, SNDRV_CTL_IOCTL_TLV_READ, tlv);
@@ -462,7 +476,11 @@ int mixer_ctl_set_array(struct mixer_ctl *ctl, const void *array, size_t count)
         if (ctl->info.access & SNDRV_CTL_ELEM_ACCESS_TLV_READWRITE) {
             struct snd_ctl_tlv *tlv;
             int ret = 0;
+            if (count > SIZE_MAX - sizeof(*tlv))
+                return -EINVAL;
             tlv = calloc(1, sizeof(*tlv) + count);
+            if (!tlv)
+                return -ENOMEM;
             tlv->numid = ctl->info.id.numid;
             tlv->length = count;
             memcpy(tlv->tlv, array, count);

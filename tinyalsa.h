@@ -153,6 +153,9 @@ unsigned int pcm_params_get_min(struct pcm_params *pcm_params,
 unsigned int pcm_params_get_max(struct pcm_params *pcm_params,
                                 enum pcm_param param);
 
+/* Returns the file descriptor associated with the pcm */
+int pcm_get_file_descriptor(struct pcm *pcm);
+
 /* Returns a human readable reason for the last error */
 const char *pcm_get_error(struct pcm *pcm);
 
@@ -229,6 +232,9 @@ const char *mixer_get_name(struct mixer *mixer);
 unsigned int mixer_get_num_ctls(struct mixer *mixer);
 struct mixer_ctl *mixer_get_ctl(struct mixer *mixer, unsigned int id);
 struct mixer_ctl *mixer_get_ctl_by_name(struct mixer *mixer, const char *name);
+struct mixer_ctl *mixer_get_ctl_by_name_and_index(struct mixer *mixer,
+                                                  const char *name,
+                                                  unsigned int index);
 
 /* Get info about mixer controls */
 unsigned int mixer_ctl_get_id(struct mixer_ctl *ctl);
