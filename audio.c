@@ -101,16 +101,25 @@ audiolayer_open(void)
 	if(!pcm_is_ready(al))
 	{
 		fprintf(stderr, "tinyalsa Error: %s\n", pcm_get_error(al));
-		return -1;
+		goto _go_close_pcm; /* NOTE is this necessary? */
 	}
-#else
-	if(snd_pcm_open(&al, "ipmic",
-	(alp.type == AL_CAPTURE ? SND_PCM_STREAM_CAPTURE :
-	SND_PCM_STREAM_PLAYBACK), 0) < 0 || set_hw_params() == -1)
-		return -1;
-#endif
 
 	return 0;
+_go_close_pcm:
+	pcm_close(al);
+	return -1;
+#else
+	if(snd_pcm_open(&al, "ipmic", (alp.type == AL_CAPTURE ?
+	SND_PCM_STREAM_CAPTURE : SND_PCM_STREAM_PLAYBACK), 0) < 0)
+		return -1;
+	if(set_hw_params() == -1)
+		goto _go_close_pcm;
+
+	return 0;
+_go_close_pcm:
+	snd_pcm_close(al);
+	return -1;
+#endif
 }
 
 int

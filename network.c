@@ -51,13 +51,13 @@ netlayer_open (void)
 
 		if (bind(nl, (struct sockaddr*) &socket_addr,
 		    sizeof(struct sockaddr_in)) == -1)
-			return -1;
+			goto _go_close_socket;
 
 		if (nlp.socket_type == SOCK_STREAM) {
 			if (listen(nl, 1) == -1)
-				return -1;
+				goto _go_close_socket;
 			if ((tmp_sfd = accept(nl, NULL, NULL)) == -1)
-				return -1;
+				goto _go_close_socket;
 
 			close(nl);
 			nl = tmp_sfd;
@@ -65,11 +65,11 @@ netlayer_open (void)
 	}
 	else { /* else we're in client mode */
 		if ((socket_addr.sin_addr.s_addr = inet_addr(nlp.addr)) == -1)
-			return -1;
+			goto _go_close_socket;
 
 		if (connect(nl, (struct sockaddr*) &socket_addr,
 		    sizeof(struct sockaddr_in)) == -1)
-			return -1;
+			goto _go_close_socket;
 	}
 
 	if(nlp.socket_type == SOCK_STREAM)
@@ -79,6 +79,10 @@ netlayer_open (void)
 	//setsockopt(nl, SOL_SOCKET, SO_PRIORITY, &socket_priority,sizeof(int));
 
 	return 0;
+
+_go_close_socket:
+	close(nl);
+	return -1;
 }
 
 int
