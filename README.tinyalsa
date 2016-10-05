@@ -1,6 +1,9 @@
-NOTE: pcm.c, mixer.c, asound.h and tinyalsa.h were obtained from
-https://github.com/tinyalsa/tinyalsa .
+NOTE: tinyalsa.c, tinyalsa.h and asound.h were obtained from
+https://github.com/tinyalsa/tinyalsa
 
-In https://github.com/tinyalsa/tinyalsa repository ...
-*  sound.h is at include/sound/
-*  tinyalsa.h was renamed from include/tinyalsa/asoundlib.h
+We got the original source without any modification, except
+file names :-)
+Differences between file names:
+*  tinyalsa.c was renamed from src/pcm.c
+*  tinyalsa.h was renamed from include/tinyalsa/pcm.h
+*  asound.h is at include/sound/asound.h

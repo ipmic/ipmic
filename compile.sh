@@ -4,7 +4,7 @@ xdir="`dirname $0`"
 cd $xdir
 
 common_files="network.c audio.c common.c"
-tinyalsa_files="mixer.c pcm.c"
+tinyalsa_files="tinyalsa.c"
 alsalib_libs="-lasound"
 
 print_usage() {
