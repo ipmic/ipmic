@@ -1,0 +1,14 @@
+List of some useful links:
+
+	Sequencer -- Timing and Synchronization (article)
+http://www.alsa-project.org/~frank/alsa-sequencer/node5.html
+
+	Synchronized audio playback over WIFI and Ethernet (article)
+http://www.diva-portal.se/smash/get/diva2:929872/FULLTEXT01.pdf
+
+	Opalum wireless sound system (company)
+http://www.opalum.com
+
+	How can I synchronize a method call with alsa playback? (not answered)
+http://stackoverflow.com/questions/33609855/how-can-i-synchronize-a-method-call-
+with-alsa-playback
