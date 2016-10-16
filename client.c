@@ -53,9 +53,9 @@ main(int argc, char **argv)
 	/* Set audio and network parameters from command line */
 	alp.type = AL_CAPTURE; /* client will capture sound */
 	alp.period_size = atoi(argv[++argidx]);
+	alp.buffer_size = frames_to_bytes(alp.period_size);
 	nlp.socket_type = DEFAULT_SOCKETTYPE;
 	nlp.port = atoi(argv[++argidx]);
-	nlp.buffer_size = frames_to_bytes(alp.period_size);
 	nlp.addr = argv[++argidx];
 
 	if(common_init(&buf) == -1)
@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	while(keep_running)
 	{
 		if((err = audiolayer_read(buf,
-		bytes_to_frames(nlp.buffer_size))) < 0)
+		bytes_to_frames(alp.buffer_size))) < 0)
 		{
 			if(err == -EAGAIN)
 				continue;
@@ -81,7 +81,7 @@ main(int argc, char **argv)
 			continue;
 		}
 
-		if((len = netlayer_send(buf, nlp.buffer_size, 0)) < 0)
+		if((len = netlayer_send(buf, alp.buffer_size, 0)) < 0)
 		{
 			if(len == -1 && errno != EAGAIN)
 			{

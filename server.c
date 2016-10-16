@@ -52,9 +52,9 @@ main(int argc, char **argv)
 	/* Set audio and network parameters from command line */
 	alp.type = AL_PLAYBACK; /* server will play sound */
 	alp.period_size = atoi(argv[++argidx]);
+	alp.buffer_size = frames_to_bytes(alp.period_size);
 	nlp.socket_type = DEFAULT_SOCKETTYPE;
 	nlp.port = atoi(argv[++argidx]);
-	nlp.buffer_size = frames_to_bytes(alp.period_size);
 	nlp.addr = NULL;
 
 	if(common_init(&buf) == -1)
@@ -62,7 +62,7 @@ main(int argc, char **argv)
 
 	while(keep_running)
 	{
-		if((len = netlayer_recv(buf, nlp.buffer_size, 0)) < 0)
+		if((len = netlayer_recv(buf, alp.buffer_size, 0)) < 0)
 		{
 			if(len == -1 && errno != EAGAIN)
 			{
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 		}
 
 		if((err = audiolayer_write((const void*) buf,
-		bytes_to_frames(nlp.buffer_size))) < 0)
+		bytes_to_frames(alp.buffer_size))) < 0)
 		{
 			if(err == -EAGAIN)
 				continue;

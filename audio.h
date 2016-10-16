@@ -43,6 +43,7 @@ struct audiolayerparams_t
 {
 	int type; /* playback or capture */
 	int period_size; /* in frames */
+	int buffer_size; /* in bytes */
 };
 
 int

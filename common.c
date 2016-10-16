@@ -139,7 +139,7 @@ common_init(void **buf)
 	}
 
 	/* Allocate memory for buffer */
-	if((*buf = malloc(nlp.buffer_size)) == NULL)
+	if((*buf = malloc(alp.buffer_size)) == NULL)
 		goto _go_audiolayer_close;
 
 	/* Print info on terminal */
