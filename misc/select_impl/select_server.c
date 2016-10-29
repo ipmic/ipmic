@@ -81,7 +81,7 @@ main (void) {
 	while (keep_running) {
 		/* call select */
 		/* NOTE in an audio application we must synchronize playback
-		 * with select() >>> snd_pcm_dela/availy()? <<< */
+		 * with select() >>> snd_pcm_delay/avail()? <<< */
 		memcpy(&select_timeout_arg, &select_timeout,
 		       sizeof(struct timeval));
 		retval = select(sfd + 1, &rfds, NULL, NULL,
