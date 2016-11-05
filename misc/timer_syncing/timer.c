@@ -15,13 +15,50 @@ static struct sigevent sigev = {
 };
 static timer_t timerid;
 
-/*
- * it's like I love prototypes :-)
- */
-/* update timer interval for a possible synchronization with another source */
+static struct itimerspec default_interval;
+
+
+static inline void
+do_nsec_add (long nsecs, struct timespec *ts) {
+	/* here we add nsecs to ts */
+	
+}
+
+/* timer API: */
+
 int
-timer_update_interval(struct itimerspec);
-/* create a new timer */
+timer_get_expirations (void) {
+	return timer_getoverrun(timerid);
+}
+
 int
-timer_new(void);
-// timer_create(CLOCK_MONOTONIC, struct sigevent *, timer_t *);
+timer_adjust_interval (long nsecs) {
+	struct itimerspec timerspec;
+
+	timerspec = default_interval;
+	do_nsec_add(nsecs, &timerspec.it_value); /* inline function */
+
+	return timer_settime(timerid, 0, &timerspec, NULL);
+}
+
+int
+timer_restore_interval (void) {
+	/* flag TIMER_ABSTIME may be interesting (man 2 timer_settime) */
+	return timer_settime(timerid, 0, &default_interval, NULL);
+}
+
+int
+timer_setup (long nsecs) {
+	struct timespec ts;
+
+	if (timer_create(CLOCK_MONOTONIC, &sigev, &timerid) == -1)
+		return -1;
+
+	ts.tv_sec = 0; /* `tv_sec` field is not used */
+	ts.tv_nsec = nsecs;
+
+	default_interval.it_interval = ts;
+	default_interval.it_value = ts;
+
+	return 0;
+}
