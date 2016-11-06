@@ -1,14 +1,67 @@
 List of some useful links:
 
-	Sequencer -- Timing and Synchronization (article)
+##############
+#Audio loss: #
+##############
+
+	Audio Packet Loss Concealment in a Combined MDCT-MDST Domain:
+http://webee.technion.ac.il/Sites/People/IsraelCohen/Publications/SPL_Dec2007.pdf
+
+#######################
+# Audio transmission: #
+#######################
+
+	Good article about audio streaming:
+https://prupert.wordpress.com/2010/08/02/stream-live-audio-from-a-microphone-in-
+near-real-time-in-ubuntu/
+
+	trx: Realtime audio over IP (uses opus codec and RTP[ortp]):
+http://www.pogo.org.uk/~mark/trx/
+
+	Sequencer -- Timing and Synchronization (article):
 http://www.alsa-project.org/~frank/alsa-sequencer/node5.html
 
-	Synchronized audio playback over WIFI and Ethernet (article)
-http://www.diva-portal.se/smash/get/diva2:929872/FULLTEXT01.pdf
-
-	Opalum wireless sound system (company)
-http://www.opalum.com
-
-	How can I synchronize a method call with alsa playback? (not answered)
+	How can I synchronize a method call with alsa playback? (not answered):
 http://stackoverflow.com/questions/33609855/how-can-i-synchronize-a-method-call-
 with-alsa-playback
+
+	Synchronized audio playback over WIFI and Ethernet (article):
+http://www.diva-portal.se/smash/get/diva2:929872/FULLTEXT01.pdf
+
+	Opalum wireless sound system (company):
+http://www.opalum.com
+
+#########################
+# Network optimization: #
+#########################
+
+	Network optimization (cover kernel's network interrupts issues,
+	packet processing configuration, and many other interesting things):
+http://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-st
+ack-receiving-data/
+(see: #tuning-network-devices)
+
+	NAPI interrupt disabling and handling shared interrupt line:
+http://stackoverflow.com/questions/38607348/napi-interrupt-disabling-and-handlin
+g-shared-interrupt-line
+
+#######################
+# Process scheduling: #
+#######################
+
+	CPU affinity (running process in a specific core, etc):
+http://www.linuxjournal.com/article/6799
+
+	Preemption in timers with a little interval:
+http://unix.stackexchange.com/questions/55266/how-preemption-works-on-linux-when
+-a-program-has-a-timer-less-then-4ms
+
+	General explanation about Kernel Timer Systems on Linux:
+http://elinux.org/Kernel_Timer_Systems
+
+	Kernel's kernel/timer.c design by Ingo Molnar:
+https://lkml.org/lkml/2005/10/19/46
+
+	Signal handling:
+https://www.gnu.org/software/libc/manual/html_node/Signal-Handling.html#Signal-H
+andling
