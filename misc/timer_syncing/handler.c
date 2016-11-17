@@ -76,7 +76,12 @@ sigusr2_handler (int snum, siginfo_t *sinf, void *uctx) {
 	 * 2nd: DOESN'T ALLOW_MULTIPLE_ADJUSTS
 	 *	if timer interval was already adjusted in previous round and
 	 *	we still are out of expected range, we do nothing!
-	 * what implementation is most efficient? ___test miss ratio!___ */
+	 * what implementation is most efficient? ___test miss ratio!___
+	 *
+	 * Another thing that needs to be mentioned here is that setting timer
+	 * from signal handler ( timer_settime() ) is safe, as described in:
+	 * <http://pubs.opengroup.org/onlinepubs/9699919799/functions/
+	 * V2_chap02.html> */
 #define ALLOW_MULTIPLE_ADJUSTS
 #ifdef ALLOW_MULTIPLE_ADJUSTS
 	if (current_frame < expected_frame_min ||
@@ -110,6 +115,11 @@ sigusr2_handler (int snum, siginfo_t *sinf, void *uctx) {
 	// TODO
 
 	/* require each server to mix its own audio into a buffer */
+	/* ok, I know that calling pthread_cond_broadcast() in a signal handler 
+	 * is unsafe, but we don't expect a call to pthread_cond_wait() here.
+	 * Every call to pthread_cond_wait() must occur exactly after this
+	 * signal handler ends.
+	 */
 	// TODO
 
 	round++;

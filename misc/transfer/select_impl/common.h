@@ -1,23 +1,8 @@
-// IPMic select() test (common header)
+// IPMic select() test (common)
 
-// here is a list of defines that can be personalized
   /* client's select timeout is the timeout to write data in network
    * socket    It needs to be smaller than NATURAL_LATENCY */
 #define CLIENT_SELECT_TIMEOUT  5000
-  /* each  X  misses we print number of misses in terminal */
-#define MISSES_INTERVAL_TO_PRINT  20
   /* natural latency    In audio it's aka "time to record or play audio"
    * HACK: Do not use values greater than 999999 */
 #define NATURAL_LATENCY 50000 /* 0.05 second */
-  /* port to bind (server) or connect (client) */
-#define PORT_TO_BIND  8080
-// ----------
-
-int
-network_open (const char*);
-
-void
-register_sigint_handler (void);
-
-void
-print_misses_each_interval (void);

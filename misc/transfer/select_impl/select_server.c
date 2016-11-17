@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "common.h"
+#include "../transfer_common.h"
 
 #define BUFFER_SIZE 1024
 

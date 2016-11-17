@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "common.h"
+#include "../transfer_common.h"
 
 static struct timeval natural_latency; /* for example: time to record an audio
 					  packet from a microphone.

@@ -1,4 +1,6 @@
-// IPMic select() test (common)
+// IPMic transfer (common part)
+// this code contains network opening, signal handler and misses count
+
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <signal.h>
@@ -6,7 +8,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "common.h"
+/* each  X  misses we print number of misses in terminal */
+#define MISSES_INTERVAL_TO_PRINT  20
+/* port to bind (server) or connect (client) */
+#define PORT_TO_BIND  8080
 
 int sfd;
 unsigned long misses = 0; /* how many packets doesn't arrive in time */
