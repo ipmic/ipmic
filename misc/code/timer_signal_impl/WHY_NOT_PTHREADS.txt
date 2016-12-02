@@ -1,0 +1,71 @@
+WHY WE DIDN'T USE {mutexes, conds} IN timer_signal IMPLEMENTATION?
+
+I've tryed to implement a synchronization method using a signal handler (look at
+timer_syncing) which wakes up all the servers (when audio should be delivered to
+PCM) with pthread_cond_broadcast().
+Unfortunatelly this didn't work, that's because beyond async-signal-UNsafety of
+pthreads (mutexes, conds), we couldn't implement it anyway even if we used
+sigprocmask() -- this is due to the fact that sigprocmask() can't be atomically
+called with pthread_cond_wait()  See below:
+
+lock_signal()  <-- Block signal
+mutex_lock()   <-- Lock cond associated mutex
+cond_wait()    <-- Wait for cond_broadcast[signal]()
+*** At this point our process is waiting for a cond_broadcast() given that we
+*** didn't unblock signal. Signal can't run and thus call cond_broadcast()
+
+NOTE: I don't know if is there a method to resolve this problem, but anyway
+      I found this implementation is a __shit__ anyway.
+
+----------
+Some amazing links:
+
+Amazing article about async-signal-UNsafety:
+http://jamessullivan1.github.io/blog/2015/07/async-signal-unsafe
+
+signal (7) manual:
+http://man7.org/linux/man-pages/man7/signal.7.html
+
+The solution (self-pipe trick):
+http://man7.org/tlpi/code/online/diff/altio/self_pipe.c.html
+----------
+
+I also took advantage of an answer made by me in this question:
+http://stackoverflow.com/questions/30890526/
+... and here it is:
+>
+> Perhaps you could use sigprocmask() to make sure a given signal will not
+> arrives at a specific point in your code, and then the signal handler can't be
+> executed in that point.
+> For example:
+> * The code below was based from this James Sullivan's article
+>
+> Functions to lock/unlock (maybe) the about-to-arrive signal:
+>
+>   void signal_lock (sigset_t *save) {
+>       sigset_t set;
+> 
+>       sigfillset(&set); /* fill `set` with __all__ signals */
+>       sigprocmask(SIG_BLOCK, &set, &save); /* no more signals :-)  */
+>   }
+> 
+>   void signal_unlock (sigset_t *save) {
+>       sigprocmask(SIG_SETMASK, &save, NULL); /* enable again */
+>   }
+>
+> After a call to signal_lock() ...
+>
+>   sigset_t tmp;
+> 
+>   signal_lock(&tmp); /* we locked all signals --
+>                       * no signal will arrives until signal_unlock() */
+>   pthread_mutex_lock(<pthread_mutex_t*>);
+>   /* do your stuff */
+>   pthread_mutex_unlock(<pthread_mutex_t*>);
+>   signal_unlock(&tmp); /* unlock signals --
+>                         * only signals allowed before signal_lock()
+>                         * may arrive */
+>
+> I recommend you to read thoroughly this amazing article by James Sullivan, it
+> explains better the things :-)
+>

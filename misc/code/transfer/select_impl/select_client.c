@@ -14,10 +14,6 @@ static struct timeval natural_latency; /* for example: time to record an audio
 					  packet from a microphone.
 					  here it's introduced artificially */
 
-extern int sfd; /* socket file descriptor */
-extern unsigned long misses; /* misses count */
-extern int keep_running; /* keep looping? (see while loop in main ) */
-
 int
 main (int argc, char **argv) {
 	fd_set wfds;

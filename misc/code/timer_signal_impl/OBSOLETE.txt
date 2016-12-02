@@ -1,0 +1,2 @@
+After some thinks I'd better a solution based on poll() `code/poll_impl/`?
+BECAUSE signal handler is not fast enough!?

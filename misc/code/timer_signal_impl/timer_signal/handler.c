@@ -1,54 +1,62 @@
-// IPMic timer syncing (handler)
+// IPMic timer-signal (the signal handler)
+
+/* for laypeople:
+ * o A "timer" here is something that sends a timer-signal to a system process
+ *   (thread) every timer-expiration (this last defined by a timeout).
+ * o A timer-signal causes signal handler to be executed :-) */
 
 #include <assert.h>
 #include <signal.h>
 #include <string.h> /* memset() */
 
-/* in audio.h:
- *   `long` -> `snd_pcm_sframes_t`  'frames count
+/* we expect in audio.h:
+ *   `long` -> `snd_pcm_sframes_t`  (frames counting, Ex: `frames_to_adjust`)
  *   `audio_get_current_frame()` -> snd_pcm_avail()
- *   `_extern_ frame_nsecs`  'how many nanoseconds a frame has
- *   `FRAME_ADJUST_NSECS`  How many nanoseconds should a frame adjust be
+ *   `_extern_ frame_nsecs`  (how many nanoseconds a frame has)
+ *   `FRAME_ADJUST_NSECS`  How many nanoseconds should a "frame adjust" be
  */
 #include "audio.h"
 #include "timer.h"
+#include "wakeup_servers.h"
 
 /* signal action structure */
 static struct sigaction sact;
 
-/* frame which we expect to be when timer interrupt happens */
+/* frame range which we expect to be when signal handler run */
 static long expected_frame_min;
 static long expected_frame_max;
 
-/* current round count  (round = period) */
+/* current round count  (round = audio period) */
 static unsigned long round;
-/* last round which we needed to adjust timer's interrupt-time */
+/* last round which we have adjusted timer-expiration */
 static unsigned long last_adjust_round;
 
 /**
+ *                           >> THE SIGNAL HANDLER <<
  * @param snum  signal number
  * @param sinf  signal info (man 2 sigaction)
  * @param uctx  user context (not used)
  */
 static void
 sigusr2_handler (int snum, siginfo_t *sinf, void *uctx) {
-	/* here we get current frame with audio_get_current_frame()
-	 * and syncronize timer signal/interrupt */
+	/* digest: here we get current frame with audio_get_current_frame()
+	 *         and syncronize timer-expiration */
 
-	/* in IPMic:
-	 * >  first check (assert) if an expiration has occured "in the middle"
-	 * >  get current audio frame and check if it is between acceptable
-	 *    limits (`expected_frame_min` and `expected_frame_max`)
-	 * >  verificate if timer was adjusted in last round. if yes, restore it
-	 * >  check if we're about to be context-switched
-	 * >  require each server to mix its own audio into a buffer
+	/* in pratice:
+	 * > First check (assert) if an expiration has occured "in the middle".
+	 * > Get current audio frame and check if it is between acceptable
+	 *   range (`expected_frame_min` and `expected_frame_max`).
+	 * > Verify if timer was adjusted in last round. If yes, restore it
+	 *   (or no, see ALLOW_MULTIPLE_ADJUSTS below).
+	 * > [forget this] Check if we're about to be context-switched
+	 * > Require each server to mix its own audio into a buffer.
 	 *
-	 * NOTES: we must send a broadcast signal to all servers waiting
-	 *        for audio packet from network.
-	 *        and then require that each server mixes its own audio data
-	 *        into mmaped sound-playback buffer.
-	 *        >>implementing what was mentioned above could be
-	 *          done with mutexes, rwlocks?
+	 * NOTES: We must send a broadcast signal to all servers waiting
+	 *        for audio packet from network. And then require that each
+	 *        server mixes its own audio data into mmaped sound-playback
+	 *        buffer.
+	 *        >> implementing what was mentioned above could be
+	 *           done with mutexes, conds?  NO! (see WHY_NOT_PTHREADS.txt)
 	 */
 
 	long current_frame; /* result of snd_pcm_avail() */
@@ -79,10 +87,9 @@ sigusr2_handler (int snum, siginfo_t *sinf, void *uctx) {
 	 * what implementation is most efficient? ___test miss ratio!___
 	 *
 	 * Another thing that needs to be mentioned here is that setting timer
-	 * from signal handler ( timer_settime() ) is safe, as described in:
-	 * <http://pubs.opengroup.org/onlinepubs/9699919799/functions/
-	 * V2_chap02.html> */
-#define ALLOW_MULTIPLE_ADJUSTS
+	 * from signal handler ( timer_settime() ) is safe, as described in
+	 * signal (7) manual:
+	 * <http://man7.org/linux/man-pages/man7/signal.7.html> */
 #ifdef ALLOW_MULTIPLE_ADJUSTS
 	if (current_frame < expected_frame_min ||
 	    current_frame > expected_frame_max) {
@@ -112,15 +119,10 @@ sigusr2_handler (int snum, siginfo_t *sinf, void *uctx) {
 #endif
 
 	/* check if we're about to be context-switched */
-	// TODO
+	// nothing TODO?
 
 	/* require each server to mix its own audio into a buffer */
-	/* ok, I know that calling pthread_cond_broadcast() in a signal handler 
-	 * is unsafe, but we don't expect a call to pthread_cond_wait() here.
-	 * Every call to pthread_cond_wait() must occur exactly after this
-	 * signal handler ends.
-	 */
-	// TODO
+	wakeup_servers(); /* see wakeup_servers.c */
 
 	round++;
 	return;
@@ -140,14 +142,13 @@ handler_setup (long efmin, long efmax) {
 	/* initialize sigaction struct */
 	memset(&sact, 0, sizeof(struct sigaction));
 	sact.sa_sigaction = sigusr2_handler;
-	sact.sa_flags = SA_NODEFER | SA_SIGINFO;
+	sact.sa_flags = SA_SIGINFO;
 
 	if ( sigaction(SIGUSR2, (const struct sigaction*) &sact, NULL) == -1 ) {
 		// we die here ...
 		return -1;
 	}
-	/* timer is not initialized yet! ok?!
-	 * we should not expect for SIGUSR2 signal here ... */
+	/* timer is not initialized yet and SIGUSR2 may not arrives here ... */
 
 	// NOTE more to do?
 	return 0;

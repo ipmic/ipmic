@@ -1,7 +1,8 @@
-// IPMic timer syncing (timer)
+// IPMic timer-signal (the signal handler)
 
-/* -> syncing process is made every "period clock".
- * -> "period clock" is each time we receive a signal.
+/* making it clear:
+ * > the syncing procedure should be made every "period clock".
+ * > "period clock" is represented by timer-expiration.
  */
 
 /*   link with -lrt */
@@ -11,7 +12,7 @@
 static struct sigevent sigev = {
 	.sigev_notify = SIGEV_SIGNAL,
 	.sigev_signo = SIGUSR2,
-	.sigev_value = NULL, /* TODO value to pass to handler */
+	.sigev_value = NULL, /* value to pass to handler */
 };
 static timer_t timerid;
 
@@ -20,7 +21,7 @@ static struct itimerspec default_interval;
 
 static inline void
 do_nsec_add (long nsecs, struct timespec *ts) {
-	/* here we add nsecs to ts */
+	/* TODO here we add nsecs to ts */
 	
 }
 

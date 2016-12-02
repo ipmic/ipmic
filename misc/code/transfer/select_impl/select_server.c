@@ -21,10 +21,6 @@
 static struct timeval select_timeout; /* it's natural latency
 					 (see select_client.c) */
 
-extern int sfd; /* socket file descriptor */
-extern unsigned long misses; /* misses count */
-extern int keep_running; /* keep looping? (see while loop in main ) */
-
 static unsigned long drops = 0; /* how many packets were dropped */
 
 /* this function gets select_timeout (natural latency) from client */

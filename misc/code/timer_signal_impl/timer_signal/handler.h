@@ -1,4 +1,4 @@
-// IPMic timer syncing (handler)
+// IPMic timer-signal (the signal handler)
 
 /* setup handler */
 int
