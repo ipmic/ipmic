@@ -1,2 +1,2 @@
-After some thinks I'd better a solution based on poll() `code/poll_impl/`?
+After a few thoughts I'd better a solution based on epoll() `code/poll_impl/`?
 BECAUSE signal handler is not fast enough!?
