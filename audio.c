@@ -101,7 +101,8 @@ audiolayer_open(void)
 	if(!pcm_is_ready(al))
 	{
 		fprintf(stderr, "tinyalsa Error: %s\n", pcm_get_error(al));
-		goto _go_close_pcm; /* NOTE is this necessary? */
+		/* Do not close PCM!
+		 * pcm_is_ready() has returned '0' because `fd <= 0` */
 	}
 
 	return 0;
