@@ -1,6 +1,20 @@
-If you're going to do a lecture and you can't find a microphone in premise, get
-your smartphone from pocket, connect it in your computer and start talk!
+	Idea
+For example, if you're going to do a lecture and you can't find a microphone in
+premise, get your smartphone from pocket, connect it wireless to your computer
+and start talk!
 
+	How it came about?
+In a play at Campo Bom I was helping my teacher to install some wireless
+microphones and the idea suddenly came to my mind.
+
+	Originality and "reinventing the wheel"
+I suppose there's no duplication or "NIH syndrome"[1] in IPMic itself.
+I (Ricardo) have "NIH syndrome"[1], but I can't reinvent the wheel all the
+times -- impracticable :-)
+[1]  https://en.wikipedia.org/wiki/Not_invented_here
+
+	the  Idea  description above was first mentioned in the following talk
+	with Raphael S. Carvalho:
 [pt-BR] 15/10/2016 -- To Raphael Carvalho:
 Se você for dar uma palestra e não encontrar um microfone no lugar, você tira
 seu celular do bolso, conecta no computador e começa a falar.
