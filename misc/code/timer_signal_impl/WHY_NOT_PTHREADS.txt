@@ -1,8 +1,8 @@
 WHY WE DIDN'T USE {mutexes, conds} IN timer_signal IMPLEMENTATION?
 
-I've tryed to implement a synchronization method using a signal handler (look at
-timer_syncing) which wakes up all the servers (when audio should be delivered to
-PCM) with pthread_cond_broadcast().
+I've tried to implement a synchronization method using a signal handler (look at
+./timer_signal/) which wakes up all the servers (when audio should be delivered
+to PCM) with pthread_cond_broadcast().
 Unfortunatelly this didn't work, that's because beyond async-signal-UNsafety of
 pthreads (mutexes, conds), we couldn't implement it anyway even if we used
 sigprocmask() -- this is due to the fact that sigprocmask() can't be atomically
@@ -15,7 +15,7 @@ cond_wait()    <-- Wait for cond_broadcast[signal]()
 *** didn't unblock signal. Signal can't run and thus call cond_broadcast()
 
 NOTE: I don't know if is there a method to resolve this problem, but anyway
-      I found this implementation is a __shit__ anyway.
+      I found this implementation a __shit__.
 
 ----------
 Some amazing links:
@@ -27,10 +27,13 @@ signal (7) manual:
 http://man7.org/linux/man-pages/man7/signal.7.html
 
 The solution (self-pipe trick):
+* Yes, this is a solution! It uses a pipe instead of pthread_cond_* kind of
+  functions.
 http://man7.org/tlpi/code/online/diff/altio/self_pipe.c.html
 ----------
 
-I also took advantage of an answer made by me in this question:
+I also took advantage of an answer made by me in this question which show
+the non-implemented signal lock/unlock functions:
 http://stackoverflow.com/questions/30890526/
 ... and here it is:
 >

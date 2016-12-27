@@ -1,2 +1,5 @@
-After a few thoughts I'd better a solution based on epoll() `code/poll_impl/`?
-BECAUSE signal handler is not fast enough!?
+timer-signal-implementation is obsolete!
+
+After a few thoughts I'd better a solution based on epoll() `code/epoll_impl/`.
+That's BECAUSE signal handler is not fast enough!?
+Thanks to Raphael S. Carvalho for advice :-)
