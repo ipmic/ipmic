@@ -10,3 +10,5 @@ Microphone Over IP (Internet Protocol).
 
 The IPMic Project is going to be a way to develop microphones which will work
 over a local network (wired/wireless).
+
+See misc/ for further details in development process
