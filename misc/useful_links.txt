@@ -1,8 +1,21 @@
 List of some useful links:
 
+############
+# General: #
+############
+
+	(video) Audio latency with Glenn Kasten:
+https://youtu.be/PnDK17zP9BI
+
+	(article) Contributors to Audio Latency:
+https://source.android.com/devices/audio/latency_contrib.html
+
 ##############
 #Audio loss: #
 ##############
+
+	(wikipedia) What is Packet Loss Concealment:
+https://en.wikipedia.org/wiki/Packet_loss_concealment
 
 	Audio Packet Loss Concealment in a Combined MDCT-MDST Domain:
 http://webee.technion.ac.il/Sites/People/IsraelCohen/Publications/SPL_Dec2007.pdf
@@ -15,7 +28,7 @@ http://webee.technion.ac.il/Sites/People/IsraelCohen/Publications/SPL_Dec2007.pd
 https://prupert.wordpress.com/2010/08/02/stream-live-audio-from-a-microphone-in-
 near-real-time-in-ubuntu/
 
-	trx: Realtime audio over IP (uses opus codec and RTP[ortp]):
+	trx -  Realtime audio over IP (uses opus codec and RTP[ortp]):
 http://www.pogo.org.uk/~mark/trx/
 
 	Sequencer -- Timing and Synchronization (article):
@@ -48,6 +61,9 @@ g-shared-interrupt-line
 #######################
 # Process scheduling: #
 #######################
+
+	sched(7) manual:
+http://man7.org/linux/man-pages/man7/sched.7.html
 
 	CPU affinity (running process in a specific core, etc):
 http://www.linuxjournal.com/article/6799
