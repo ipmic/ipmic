@@ -1,4 +1,5 @@
-// IPMic timer-signal (the signal handler)
+// IPMic timer-signal (the timer management)
+// Copyright (C) 2016  Ricardo Biehl Pasquali <rbpoficial@gmail.com>
 
 /* making it clear:
  * > the syncing procedure should be made every "period clock".

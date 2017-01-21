@@ -1,4 +1,5 @@
-// IPMic timer-signal (the signal handler)
+// IPMic timer-signal
+// Copyright (C) 2016  Ricardo Biehl Pasquali <rbpoficial@gmail.com>
 
 /* invoke timer_getoverrun() */
 int

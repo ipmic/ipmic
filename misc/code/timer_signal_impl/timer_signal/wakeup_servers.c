@@ -1,4 +1,5 @@
-// IPMic timer-signal (the signal handler)
+// IPMic timer-signal (the wake-up-servers procedure)
+// Copyright (C) 2016  Ricardo Biehl Pasquali <rbpoficial@gmail.com>
 
 // #######################################
 // Remember we are inside a Signal Handler

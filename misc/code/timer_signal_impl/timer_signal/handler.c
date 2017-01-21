@@ -1,4 +1,5 @@
 // IPMic timer-signal (the signal handler)
+// Copyright (C) 2016  Ricardo Biehl Pasquali <rbpoficial@gmail.com>
 
 /* for laypeople:
  * o A "timer" here is something that sends a timer-signal to a system process
