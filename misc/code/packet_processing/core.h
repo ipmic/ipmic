@@ -1,4 +1,9 @@
+/*
+ * Copyright (C) 2017  Ricardo Biehl Pasquali <rbpoficial@gmail.com>
+ * under the terms of the GNU General Public License (see LICENSE file)
+ */
+
 // IPMic packet processing (core)
 
-#define ERROR_HDRINV -1 /* header is invalid */
-#define ERROR_TSINV -2 /* time stamp is invalid */
+int
+packet_is_ok(void*, size_t);
