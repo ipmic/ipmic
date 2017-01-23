@@ -34,7 +34,7 @@ long long xrun_count;
 extern audioparam_t alp;
 extern netparam_t nlp;
 
-int keep_running = 1;
+volatile sig_atomic_t keep_running = 1;
 
 static void
 signal_handler(int signum)
