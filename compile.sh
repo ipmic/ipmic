@@ -15,8 +15,8 @@ print_usage() {
 
 compile_alsalib() {
 	# alsa-lib
-	gcc $alsalib_libs -o client $common_files client.c
-	gcc $alsalib_libs -o server $common_files server.c
+	gcc -o client $common_files client.c $alsalib_libs
+	gcc -o server $common_files server.c $alsalib_libs
 }
 
 compile_tinyalsa() {
