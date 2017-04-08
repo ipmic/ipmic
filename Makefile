@@ -33,6 +33,9 @@
 
 # Variables that may affect the building
 # of the project are:
+#   release - if set, removes debug statements
+#             and symbols and enables compiler
+#             optimizations.
 #   use_tinyalsa - if set, causes the audio layer
 #                  to use tinyalsa instead of alsa-lib
 #   prefix - determines where the default installs paths
@@ -56,9 +59,17 @@ objfiles += audio.o
 objfiles += common.o
 objfiles += network.o
 
+use_tinyalsa = 1
+
+ifdef release
+CFLAGS += -O3 -DIPMIC_RELEASE
+else
+CFLAGS += -g -O2
+endif
+
 ifdef use_tinyalsa
 objfiles += tinyalsa.o
-CFLAGS += -D_TINYALSA
+CFLAGS += -DIPMIC_WITH_TINYALSA
 else
 LDLIBS += -lasound
 endif
